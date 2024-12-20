@@ -34,7 +34,7 @@ def test_model_parameters():
         logger.error(f"✗ Model parameters test failed: {str(e)}")
         raise
 
-def has_dropout():
+def test_has_dropout_layer():
     logger.info("Starting model dropout layer test")
     model = MNIST()
     has_dropout_layer = False
@@ -49,7 +49,7 @@ def has_dropout():
         logger.error(f"✗ Model Dropout Layer test failed: {str(e)}")
         raise
 
-def has_batch_norm():
+def test_batch_norm():
     logger.info("Starting model batch norm layer test")
     model = MNIST()
     has_batch_norm_layer = False
@@ -66,7 +66,7 @@ def has_batch_norm():
 
 def test_model_accuracy():
     logger.info("Starting model accuracy test")
-    logger.info("Training model for one epoch...")
+    logger.info("Training model for 20 epoch...")
     
     try:
         metrics = model_train_test()
