@@ -1,31 +1,38 @@
 # MNIST Lightweight Neural Network
 
-[![ML Pipeline Test](https://github.com/shubhjadhav/tsai-erav3-s5/actions/workflows/test_model.yml/badge.svg?branch=main)](https://github.com/shubhjadhav/tsai-erav3-s5/actions/workflows/test_model.yml)
+[![ML Pipeline Test](https://github.com/shubhjadhav/tsai-erav3-s6/actions/workflows/test_model.yml/badge.svg?branch=main)](https://github.com/shubhjadhav/tsai-erav3-s6/actions/workflows/test_model.yml)
 
-A lightweight convolutional neural network for MNIST digit classification that achieves >95% accuracy in one epoch while maintaining less than 25,000 parameters. The project includes automated testing through GitHub Actions to ensure model efficiency and performance.
+A lightweight convolutional neural network for MNIST digit classification that achieves >=99.4% accuracy in 20 epoch while maintaining less than 20,000 parameters. The project includes automated testing through GitHub Actions to ensure model efficiency and performance.
 
 ## Model Architecture
 
-The LightMNIST model uses an efficient architecture:
-- Input: 28x28 grayscale images
-- 3 convolutional layers with batch normalization:
-  - Conv1: 1 → 8 channels (3x3 kernel)
-  - Conv2: 8 → 16 channels (3x3 kernel)
-  - Conv3: 16 → 16 channels (3x3 kernel)
-- Strategic max pooling layers
-- Single fully connected layer (16*9*9 → 10)
-- Total parameters: < 25,000
+The MNIST model uses an efficient architecture:
+- **Input**: 28x28 grayscale images
+- **Convolutional layers** with batch normalization:
+  - **Conv1**: 1 → 16 channels (3x3 kernel, padding=0)  
+  - **Conv2**: 16 → 32 channels (3x3 kernel, padding=0)  
+  - **Conv3**: 32 → 10 channels (1x1 kernel, padding=0)  
+  - **Conv4**: 10 → 16 channels (3x3 kernel, padding=0)  
+  - **Conv5**: 16 → 16 channels (3x3 kernel, padding=0)  
+  - **Conv6**: 16 → 16 channels (3x3 kernel, padding=0)  
+  - **Conv7**: 16 → 16 channels (3x3 kernel, padding=1)  
+- **Max pooling** after each convolution block (with varying pool sizes)
+- **Global Average Pooling** layer to reduce spatial dimensions
+- **Single fully connected layer**: 16 → 10 (output classes)
+- **Total parameters**: < 20,000
+
 
 ## Performance Metrics
-- Accuracy: >95% in single epoch
+- Accuracy: >=99.4%
 - Parameters: ~13,000
-- Training time: ~2-3 minutes on CPU
+- Training time: ~10-13 minutes on CPU
 
 ## Requirements
 
 - Python 3.8+
 - PyTorch
 - torchvision
+- torchsummary
 - pytest (for testing)
 
 Install dependencies:
@@ -43,9 +50,9 @@ python mnist_model.py
 
 This will:
 - Download the MNIST dataset automatically
-- Train for one epoch
+- Train for 20 epoch
 - Display progress and metrics
-- Show final accuracy
+- Show logs of loss and accuracy for each epoch
 
 ### Running Tests
 To run the test suite:
@@ -57,8 +64,12 @@ pytest tests/ -v --log-cli-level=INFO
 ## GitHub Actions Pipeline
 
 The project includes automated testing that verifies:
-1. Model size (< 25,000 parameters)
-2. Model performance (> 95% accuracy)
+1. Model size (< 20,000 parameters)
+2. Model has drop out layer
+3. Model has Batch Normalization
+4. Model has Linear Layer (Fully Connected)
+5. Model has GAP
+6. Model performance (>= 99.4% test accuracy)
 
 The pipeline runs automatically on:
 - Every push to the repository
@@ -69,9 +80,7 @@ The pipeline runs automatically on:
 ```
 .
 ├── mnist_model.py                  # Main model implementation
-├── augmentation_demo.py            # Augmentation visualization script
-├── images/
-│   └── augmentation_examples.png   # Augmentation visualization output
+├── data                            # MNIST Dataset
 ├── tests/
 │   └── test_mnist.py               # Automated tests
 ├── .github/
@@ -85,66 +94,72 @@ The pipeline runs automatically on:
 ## Model Details
 
 ### Architecture Highlights
-- Uses batch normalization for stable training
-- Efficient parameter usage through strategic kernel sizes
-- Optimized max pooling placement
-- Single fully connected layer for classification
+- **Uses batch normalization** for stable training and faster convergence.
+- **Efficient parameter usage** through strategic kernel sizes, reducing model complexity while maintaining performance.
+- **Optimized max pooling placement** to progressively downsample feature maps while retaining critical spatial information.
+- **Single fully connected layer** for classification, reducing the number of parameters and complexity.
 
 ### Layer-by-Layer Architecture
-1. Input Layer
-   - Input shape: 1x28x28 (grayscale MNIST images)
 
-2. Convolutional Block 1
-   - Conv2d: 1 → 8 channels, 3x3 kernel (output: 8x26x26)
-   - BatchNorm2d
-   - ReLU activation
-   - MaxPool2d: 2x2 (output: 8x13x13)
+#### Input Layer
+- **Input shape**: 1x28x28 (grayscale MNIST images)
 
-3. Convolutional Block 2
-   - Conv2d: 8 → 16 channels, 3x3 kernel (output: 16x11x11)
-   - BatchNorm2d
-   - ReLU activation
-   - MaxPool2d: 1x1 (output: 16x11x11)
+#### Convolutional Block 1
+- **Conv2d**: 1 → 16 channels, 3x3 kernel, padding=0 (output shape: 16x26x26)
+- **BatchNorm2d**: Normalizes the activations from the convolution layer.
+- **ReLU activation**: Non-linear activation function.
+- **Dropout**: Applied for regularization to avoid overfitting.
 
-4. Convolutional Block 3
-   - Conv2d: 16 → 16 channels, 3x3 kernel (output: 16x9x9)
-   - BatchNorm2d
-   - ReLU activation
-   - MaxPool2d: 1x1 (output: 16x9x9)
+#### Convolutional Block 2
+- **Conv2d**: 16 → 32 channels, 3x3 kernel, padding=0 (output shape: 32x24x24)
+- **BatchNorm2d**: Normalizes the activations from the convolution layer.
+- **ReLU activation**: Non-linear activation function.
+- **Dropout**: Applied for regularization.
 
-5. Classification Head
-   - Flatten: 16x9x9 = 1,296 features
-   - Linear: 1,296 → 10 classes
-   - LogSoftmax activation
+#### Convolutional Block 3
+- **Conv2d**: 32 → 10 channels, 1x1 kernel, padding=0 (output shape: 10x24x24)
+- **BatchNorm2d**: Normalizes the activations from the convolution layer.
+- **ReLU activation**: Non-linear activation function.
+
+#### Convolutional Block 4
+- **Conv2d**: 10 → 16 channels, 3x3 kernel, padding=0 (output shape: 16x22x22)
+- **BatchNorm2d**: Normalizes the activations from the convolution layer.
+- **ReLU activation**: Non-linear activation function.
+- **Dropout**: Applied for regularization.
+
+#### Convolutional Block 5
+- **Conv2d**: 16 → 16 channels, 3x3 kernel, padding=0 (output shape: 16x20x20)
+- **BatchNorm2d**: Normalizes the activations from the convolution layer.
+- **ReLU activation**: Non-linear activation function.
+- **Dropout**: Applied for regularization.
+
+#### Convolutional Block 6
+- **Conv2d**: 16 → 16 channels, 3x3 kernel, padding=0 (output shape: 16x18x18)
+- **BatchNorm2d**: Normalizes the activations from the convolution layer.
+- **ReLU activation**: Non-linear activation function.
+- **Dropout**: Applied for regularization.
+
+#### Convolutional Block 7
+- **Conv2d**: 16 → 16 channels, 3x3 kernel, padding=1 (output shape: 16x18x18)
+- **BatchNorm2d**: Normalizes the activations from the convolution layer.
+- **ReLU activation**: Non-linear activation function.
+- **Dropout**: Applied for regularization.
+
+#### Global Average Pooling (GAP)
+- **AdaptiveAvgPool2d**: Reduces the spatial dimensions to 1x1 (output shape: 16x1x1).
+
+#### Classification Head
+- **Flatten**: Flattens the output of GAP layer into a vector of 16 features (1,296 features).
+- **Fully Connected (Linear)**: 1,296 → 10 classes (output shape: 10).
+- **LogSoftmax**: Outputs class probabilities (log of softmax).
 
 ### Training Configuration
-- Batch size: 128
-- Optimizer: SGD with momentum (0.9)
-- Learning rate: 0.05
-- Data normalization: Mean=0.1307, Std=0.3081
-
-## Data Augmentation
-The model uses the following augmentation techniques during training:
-- Random rotation (±15 degrees)
-- Random translation (up to 10% in any direction)
-- Random scaling (90% to 110% of original size)
-
-### Augmentation Examples
-Below is a visualization of different augmentation techniques applied to a sample MNIST digit:
-
-![MNIST Augmentations](images/augmentation_examples.png)
-
-From left to right:
-- Original image
-- Rotation (±30°)
-- Scaling (0.8-1.2x)
-- Translation
-- Combined augmentations
-
-To generate your own augmentation visualizations:
-```bash
-python augmentation_demo.py
-```
+- **Batch size**: 128
+- **Optimizer**: SGD with momentum (0.9)
+- **Learning rate**: 0.05
+- **Data normalization**:
+  - **Mean** = 0.1307
+  - **Std** = 0.3081
 
 ## License
 
@@ -155,43 +170,30 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - MNIST Dataset creators
 - PyTorch team
 - GitHub Actions for CI/CD support
-
 ## Testing Framework
 
 The project includes comprehensive test cases to ensure model quality and performance:
 
 ### 1. Parameter Count Test (`test_model_parameters`)
 - Verifies model architecture efficiency
-- Ensures total parameters stay below 25,000
-- Helps maintain model lightweight nature
-- Logs exact parameter count for monitoring
+- Ensures total parameters stay below 20,000
 
-### 2. Model Accuracy Test (`test_model_accuracy`)
-- Trains model for one epoch
-- Verifies accuracy exceeds 95%
-- Tests model's learning capability
-- Logs final accuracy metrics
+### 2. Dropout Layer Test (`test_has_dropout_layer`)
+- Verifies the presence of a dropout layer in the model
 
-### 3. Output Shape Test (`test_model_output_shape`)
-- Validates model architecture correctness
-- Checks output dimensions (batch_size × 10 classes)
-- Ensures valid probability distributions
-- Verifies softmax properties (sum to 1)
+### 3. Batch Normalization Test (`test_has_batch_norm`)
+- Ensures batch normalization layers are present in the model
 
-### 4. Gradient Flow Test (`test_model_gradients`)
-- Checks backpropagation functionality
-- Verifies gradients exist for all parameters
-- Ensures non-zero gradients during training
-- Tests optimization readiness
+### 4. GAP Layer Test (`test_has_gap`)
+- Verifies the presence of a Global Average Pooling (GAP) layer
 
-### 5. Augmentation Invariance Test (`test_model_augmentation_invariance`)
-- Tests model robustness to input variations
-- Applies mild augmentations:
-  - Small rotations (±3°)
-  - Minor translations (±2%)
-  - Slight scaling (95-105%)
-- Requires 70% prediction consistency
-- Ensures model stability
+### 5. Linear Layer Test (`test_has_linear_layer`)
+- Verifies the presence of a fully connected linear layer
+
+### 6. Model Accuracy Test (`test_model_accuracy`)
+- Trains the model for 20 epochs
+- Verifies accuracy exceeds 99.4%
+
 
 ### Running Tests
 
