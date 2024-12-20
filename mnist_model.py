@@ -151,7 +151,7 @@ def model_train_test():
     train_acc_lst = []
     test_acc_lst = []
 
-    for epoch in range(1, 2):
+    for epoch in range(1, 21):
         print("\nEpoch {}".format(epoch))
         train_acc = train(model, device, train_loader, optimizer, epoch)
         train_acc_lst.append(train_acc)
